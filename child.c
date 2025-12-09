@@ -19,7 +19,8 @@ void beginningPos(Child *child) {
 
 	//srand(time(NULL));
 
-	int randBegin = rand() % 2;
+	int randBegin = rand() % 1;
+	printf("%d", randBegin);
 	int analysisDirection = rand() % 2;
 
 	switch (randBegin) {

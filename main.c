@@ -6,10 +6,10 @@
 int main() {
 	srand(time(NULL));
 
-	char rhyme[MAXLines][MAX_LINE_LENGTH];
+	char rhyme[FOREST_WIDTH][FOREST_HEIGHT];
 	const int rhymeCount = readLines("../ressources/comptine.txt", rhyme);
 
-	char clothes[MAXClothes][MAX_LINE_LENGTH];
+	char clothes[MAXClothes][FOREST_HEIGHT];
 	const int clothesCount = readLines("../ressources/vetements.txt", clothes);
 
 	Wolf wolf = {-1, -1, 0};
