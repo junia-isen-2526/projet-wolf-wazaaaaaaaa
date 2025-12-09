@@ -7,11 +7,14 @@
 #define WOLF__CHILD_H_
 
 typedef struct {
-  // TODO
+  int x;
+  int y;
 } Child;
 
 int isGameOver(GameStep step, Child child, const Wolf *wolf);
 
 void moveChildStep(const Child *child);
+
+void beginningPos(Child *child);
 
 #endif //WOLF__CHILD_H_
