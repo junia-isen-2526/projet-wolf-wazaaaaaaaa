@@ -11,21 +11,21 @@ typedef struct {
   int y;
 } Child;
 
-typedef enum { PATH, EXIT, TREE, FULL } NodeType;
+typedef enum { UNKNOW, PATH, EXIT, TREE, FULL } NodeType;
 
 typedef struct Node {
   int id;
   int x;
   int y;
   NodeType type;
-  Node *nortNeighbor;
-  Node *nortEastNeighbor;
+  Node *northNeighbor;
+  Node *northEastNeighbor;
   Node *eastNeighbor;
   Node *southEastNeighbor;
   Node *southNeighbor;
   Node *southWestNeighbor;
   Node *westNeighbor;
-  Node *nortWestNeighbor;
+  Node *northWestNeighbor;
 } Node;
 
 typedef Node DiscoveryPath;

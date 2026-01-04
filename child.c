@@ -4,66 +4,74 @@
 
 char *getForest();
 
+struct Node *createPathNode(int x, int y);
+
 int isGameOver(const GameStep step, Child child, const Wolf *wolf) {
   // TODO
   return step == STEP_WOLF_MOVE;
 }
 
-void moveChildStep(Child *child, DiscoveryPath *path) {
-  static unsigned int id = 0;
-
+void moveChildStep(Child *child, DiscoveryPath *currentPath) {
   static char forest[FOREST_WIDTH][FOREST_HEIGHT];
   readLines("../ressources/foret1.txt", forest);
 
-  if (path == NULL) {
-    path->id = id++;
-    path->x = child->x;
-    path->y = child->y;
-  }
+  Node *newPath = createPathNode(child->x, child->y);
 
-  if (path->type == NULL) {
+  if (currentPath->type == UNKNOW) {
     if (child->x < 0 || child->y < 0 || child->x > FOREST_WIDTH ||
         child->y > FOREST_HEIGHT) {
-      path->type = EXIT;
-    } else if (forest[path->x][path->y] == '1') {
-      path->type = TREE;
+      currentPath->type = EXIT;
+    } else if (forest[currentPath->x][currentPath->y] == '1') {
+      currentPath->type = TREE;
     } else {
-      path->type = PATH;
+      currentPath->type = PATH;
     }
   } else {
-    if (path->nortNeighbor != NULL && path->nortEastNeighbor != NULL &&
-        path->eastNeighbor != NULL && path->southEastNeighbor != NULL &&
-        path->southNeighbor != NULL && path->southWestNeighbor != NULL &&
-        path->westNeighbor != NULL && path->nortWestNeighbor != NULL) {
-      path->type = FULL;
+    if (currentPath->northNeighbor != NULL &&
+        currentPath->northEastNeighbor != NULL &&
+        currentPath->eastNeighbor != NULL &&
+        currentPath->southEastNeighbor != NULL &&
+        currentPath->southNeighbor != NULL &&
+        currentPath->southWestNeighbor != NULL &&
+        currentPath->westNeighbor != NULL &&
+        currentPath->northWestNeighbor != NULL) {
+      currentPath->type = FULL;
     }
   }
 
-  if (path->type != PATH) {
-    printf("Cleared %d %d %d", path->id, path->x, path->y);
-  }
-
-  if (path->eastNeighbor == NULL) {
+  if (currentPath->type != PATH) {
+    printf("Cleared %d %d %d", currentPath->id, currentPath->x, currentPath->y);
+  } else if (currentPath->eastNeighbor == NULL) {
     child->x++;
-  } else if (path->southEastNeighbor == NULL) {
+    currentPath->eastNeighbor = newPath;
+  } else if (currentPath->southEastNeighbor == NULL) {
     child->x++;
     child->y--;
-  } else if (path->southNeighbor == NULL) {
+    currentPath->southEastNeighbor = newPath;
+  } else if (currentPath->southNeighbor == NULL) {
     child->y--;
-  } else if (path->southWestNeighbor == NULL) {
+    currentPath->southNeighbor = newPath;
+  } else if (currentPath->southWestNeighbor == NULL) {
     child->x--;
     child->y--;
-  } else if (path->westNeighbor == NULL) {
+    currentPath->southWestNeighbor = newPath;
+  } else if (currentPath->westNeighbor == NULL) {
     child->x--;
-  } else if (path->nortWestNeighbor == NULL) {
+    currentPath->westNeighbor = newPath;
+  } else if (currentPath->northWestNeighbor == NULL) {
     child->x--;
     child->y++;
-  } else if (path->nortNeighbor == NULL) {
+    currentPath->northWestNeighbor = newPath;
+  } else if (currentPath->northNeighbor == NULL) {
     child->y++;
+    currentPath->northNeighbor = newPath;
   } else {
     child->x++;
     child->y++;
+    currentPath->northEastNeighbor = newPath;
   }
+
+  currentPath = newPath;
 }
 
 void beginningPos(Child *child) {
@@ -158,4 +166,24 @@ void beginningPos(Child *child) {
 
     break;
   }
+}
+
+struct Node *createPathNode(int x, int y) {
+  static unsigned int id = 0;
+
+  Node *newPath = malloc(sizeof(Node));
+  newPath->id = id++;
+  newPath->x = x;
+  newPath->y = y;
+  newPath->type = UNKNOW;
+  newPath->eastNeighbor = NULL;
+  newPath->southEastNeighbor = NULL;
+  newPath->southNeighbor = NULL;
+  newPath->southWestNeighbor = NULL;
+  newPath->westNeighbor = NULL;
+  newPath->northWestNeighbor = NULL;
+  newPath->northNeighbor = NULL;
+  newPath->northEastNeighbor = NULL;
+
+  return newPath;
 }
