@@ -47,7 +47,7 @@ int main() {
     Vertex v9 = {9, 4, 3};
 
     // Create edges
-    Edge e1_2 = {&v1, &v2};
+    Edge e1_2 = {&v1, &v2};// TODO
     Edge e2_3 = {&v2, &v3};
     Edge e3_4 = {&v3, &v4};
     Edge e4_5 = {&v4, &v5};
