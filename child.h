@@ -11,7 +11,7 @@ typedef struct {
   int y;
 } Child;
 
-typedef enum { UNKNOW, PATH, EXIT, TREE, FULL } NodeType;
+typedef enum { PATH, EXIT, TREE, FULL } NodeType;
 
 typedef struct Node {
   int id;
@@ -30,10 +30,14 @@ typedef struct Node {
 
 typedef Node DiscoveryPath;
 
+static char forest[FOREST_WIDTH][FOREST_HEIGHT];
+
 int isGameOver(GameStep step, Child child, const Wolf *wolf);
 
 void moveChildStep(Child *child, DiscoveryPath *path);
 
 void beginningPos(Child *child);
+
+struct Node *createPathNode(int x, int y);
 
 #endif // WOLF__CHILD_H_

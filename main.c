@@ -14,11 +14,16 @@ int main() {
   const int clothesCount = readLines("../ressources/vetements.txt", clothes);
 
   Wolf wolf = {-1, -1, 0};
-  Child child;
+
+  // Init child and it's position
+  // Create first path
+  Child *child = malloc(sizeof(Child));
+  beginningPos(child);
+  Node *currentPath = createPathNode(child->x, child->y);
 
   GameStep step = STEP_COMPTINE;
 
-  while (!isGameOver(step, child, &wolf)) {
+  while (!isGameOver(step, *child, &wolf)) {
     switch (step) {
     case STEP_COMPTINE:
       if (playComptineStep(rhyme, rhymeCount))
@@ -35,7 +40,7 @@ int main() {
       moveWolfStep(&wolf);
       break;
     }
-    moveChildStep(&child, );
+    moveChildStep(child, currentPath);
   }
 
   // Create the Mermaid file
