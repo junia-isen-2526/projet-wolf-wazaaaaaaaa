@@ -19,8 +19,10 @@ int main() {
   // Create first path
   Child *child = malloc(sizeof(Child));
   beginningPos(child);
-  Node *currentPath = createPathNode();
-  detectPathType(currentPath);
+  Node *newPath = createPathNode();
+  newPath->x = child->x;
+  newPath->y = child->y;
+  DiscoveryPath currentPath = *newPath;
 
   GameStep step = STEP_COMPTINE;
 
@@ -41,7 +43,7 @@ int main() {
       moveWolfStep(&wolf);
       break;
     }
-    moveChildStep(currentPath);
+    currentPath = moveChildStep(&currentPath);
   }
 
   // Create the Mermaid file

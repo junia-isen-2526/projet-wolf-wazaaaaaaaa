@@ -7,18 +7,8 @@ int isGameOver(const GameStep step, Child child, const Wolf *wolf) {
   return step == STEP_WOLF_MOVE;
 }
 
-void moveChildStep(DiscoveryPath *currentPath) {
-  // Detect if all 8 adjacent cell are already discovered
-  if (currentPath->northNeighbor != NULL &&
-      currentPath->northEastNeighbor != NULL &&
-      currentPath->eastNeighbor != NULL &&
-      currentPath->southEastNeighbor != NULL &&
-      currentPath->southNeighbor != NULL &&
-      currentPath->southWestNeighbor != NULL &&
-      currentPath->westNeighbor != NULL &&
-      currentPath->northWestNeighbor != NULL) {
-    currentPath->type = FULL;
-  }
+DiscoveryPath moveChildStep(DiscoveryPath *currentPath) {
+  detectPathType(currentPath);
 
   // If the cell is not of 'path' type that mean that we need to go back
   // Else we go to an adjacent cell not yet discovered
@@ -28,36 +18,43 @@ void moveChildStep(DiscoveryPath *currentPath) {
   } else {
     Node *newPath = createPathNode();
     if (currentPath->eastNeighbor == NULL) {
-      newPath->x = currentPath->x++;
+      newPath->x = currentPath->x + 1;
       currentPath->eastNeighbor = newPath;
+      newPath->westNeighbor = currentPath;
     } else if (currentPath->southEastNeighbor == NULL) {
-      newPath->x = currentPath->x++;
-      newPath->y = currentPath->y--;
+      newPath->x = currentPath->x + 1;
+      newPath->y = currentPath->y - 1;
       currentPath->southEastNeighbor = newPath;
+      newPath->northWestNeighbor = currentPath;
     } else if (currentPath->southNeighbor == NULL) {
-      newPath->y = currentPath->y--;
+      newPath->y = currentPath->y - 1;
       currentPath->southNeighbor = newPath;
+      newPath->northNeighbor = currentPath;
     } else if (currentPath->southWestNeighbor == NULL) {
-      newPath->x = currentPath->x--;
-      newPath->y = currentPath->y--;
+      newPath->x = currentPath->x - 1;
+      newPath->y = currentPath->y - 1;
       currentPath->southWestNeighbor = newPath;
+      newPath->northEastNeighbor = currentPath;
     } else if (currentPath->westNeighbor == NULL) {
-      newPath->x = currentPath->x--;
+      newPath->x = currentPath->x - 1;
       currentPath->westNeighbor = newPath;
+      newPath->eastNeighbor = currentPath;
     } else if (currentPath->northWestNeighbor == NULL) {
-      newPath->x = currentPath->x--;
-      newPath->y = currentPath->y++;
+      newPath->x = currentPath->x - 1;
+      newPath->y = currentPath->y + 1;
       currentPath->northWestNeighbor = newPath;
+      newPath->southEastNeighbor = currentPath;
     } else if (currentPath->northNeighbor == NULL) {
-      newPath->y = currentPath->y++;
+      newPath->y = currentPath->y + 1;
       currentPath->northNeighbor = newPath;
+      newPath->southNeighbor = currentPath;
     } else {
-      newPath->x = currentPath->x++;
-      newPath->y = currentPath->y++;
+      newPath->x = currentPath->x + 1;
+      newPath->y = currentPath->y + 1;
       currentPath->northEastNeighbor = newPath;
+      newPath->southWestNeighbor = currentPath;
     }
-    detectPathType(newPath);
-    currentPath = newPath;
+    return *newPath;
   }
 }
 
@@ -175,12 +172,20 @@ struct Node *createPathNode() {
 }
 
 void detectPathType(Node *path) {
-  if (path->x < 0 || path->y < 0 || path->x > FOREST_WIDTH ||
-      path->y > FOREST_HEIGHT) {
+  // Detect if all 8 adjacent cell are already discovered
+  if (path->northNeighbor != NULL && path->northEastNeighbor != NULL &&
+      path->eastNeighbor != NULL && path->southEastNeighbor != NULL &&
+      path->southNeighbor != NULL && path->southWestNeighbor != NULL &&
+      path->westNeighbor != NULL && path->northWestNeighbor != NULL) {
+    path->type = FULL;
+  } else if (path->x < 0 || path->y < 0 || path->x > FOREST_WIDTH ||
+             path->y > FOREST_HEIGHT) {
     path->type = EXIT;
   } else if (forest[path->x][path->y] == '1') {
     path->type = TREE;
   } else {
     path->type = PATH;
   }
+
+  printf("path type of %d : %d\n", path->id, path->type);
 }
