@@ -1,6 +1,4 @@
 #include "child.h"
-#include <stdio.h>
-#include <string.h>
 
 char *getForest();
 
@@ -9,7 +7,7 @@ int isGameOver(const GameStep step, Child child, const Wolf *wolf) {
   return step == STEP_WOLF_MOVE;
 }
 
-void moveChildStep(Child *child, DiscoveryPath *currentPath) {
+void moveChildStep(DiscoveryPath *currentPath) {
   // Detect if all 8 adjacent cell are already discovered
   if (currentPath->northNeighbor != NULL &&
       currentPath->northEastNeighbor != NULL &&
@@ -25,38 +23,40 @@ void moveChildStep(Child *child, DiscoveryPath *currentPath) {
   // If the cell is not of 'path' type that mean that we need to go back
   // Else we go to an adjacent cell not yet discovered
   if (currentPath->type != PATH) {
-    printf("Cleared %d %d %d", currentPath->id, currentPath->x, currentPath->y);
+    printf("Cleared %d : %d %d ; ", currentPath->id, currentPath->x,
+           currentPath->y);
   } else {
-    Node *newPath = createPathNode(child->x, child->y);
+    Node *newPath = createPathNode();
     if (currentPath->eastNeighbor == NULL) {
-      child->x++;
+      newPath->x = currentPath->x++;
       currentPath->eastNeighbor = newPath;
     } else if (currentPath->southEastNeighbor == NULL) {
-      child->x++;
-      child->y--;
+      newPath->x = currentPath->x++;
+      newPath->y = currentPath->y--;
       currentPath->southEastNeighbor = newPath;
     } else if (currentPath->southNeighbor == NULL) {
-      child->y--;
+      newPath->y = currentPath->y--;
       currentPath->southNeighbor = newPath;
     } else if (currentPath->southWestNeighbor == NULL) {
-      child->x--;
-      child->y--;
+      newPath->x = currentPath->x--;
+      newPath->y = currentPath->y--;
       currentPath->southWestNeighbor = newPath;
     } else if (currentPath->westNeighbor == NULL) {
-      child->x--;
+      newPath->x = currentPath->x--;
       currentPath->westNeighbor = newPath;
     } else if (currentPath->northWestNeighbor == NULL) {
-      child->x--;
-      child->y++;
+      newPath->x = currentPath->x--;
+      newPath->y = currentPath->y++;
       currentPath->northWestNeighbor = newPath;
     } else if (currentPath->northNeighbor == NULL) {
-      child->y++;
+      newPath->y = currentPath->y++;
       currentPath->northNeighbor = newPath;
     } else {
-      child->x++;
-      child->y++;
+      newPath->x = currentPath->x++;
+      newPath->y = currentPath->y++;
       currentPath->northEastNeighbor = newPath;
     }
+    detectPathType(newPath);
     currentPath = newPath;
   }
 }
@@ -64,7 +64,6 @@ void moveChildStep(Child *child, DiscoveryPath *currentPath) {
 void beginningPos(Child *child) {
   // Child spawns on a border of the forest
   // Randomly look for a pos
-  static char forest[FOREST_WIDTH][FOREST_HEIGHT];
   readLines("../ressources/foret1.txt", forest);
 
   // srand(time(NULL));
@@ -155,13 +154,14 @@ void beginningPos(Child *child) {
   }
 }
 
-struct Node *createPathNode(int x, int y) {
-  static unsigned int id = 0;
+struct Node *createPathNode() {
+  static unsigned int id = 1;
+  printf("\ncreating node %d ...\n", id);
 
   Node *newPath = malloc(sizeof(Node));
   newPath->id = id++;
-  newPath->x = x;
-  newPath->y = y;
+  newPath->x = 0;
+  newPath->y = 0;
   newPath->eastNeighbor = NULL;
   newPath->southEastNeighbor = NULL;
   newPath->southNeighbor = NULL;
@@ -171,14 +171,16 @@ struct Node *createPathNode(int x, int y) {
   newPath->northNeighbor = NULL;
   newPath->northEastNeighbor = NULL;
 
-  // Detect the type of the newly created cell
-  if (x < 0 || y < 0 || x > FOREST_WIDTH || y > FOREST_HEIGHT) {
-    newPath->type = EXIT;
-  } else if (forest[x][y] == '1') {
-    newPath->type = TREE;
-  } else {
-    newPath->type = PATH;
-  }
-
   return newPath;
+}
+
+void detectPathType(Node *path) {
+  if (path->x < 0 || path->y < 0 || path->x > FOREST_WIDTH ||
+      path->y > FOREST_HEIGHT) {
+    path->type = EXIT;
+  } else if (forest[path->x][path->y] == '1') {
+    path->type = TREE;
+  } else {
+    path->type = PATH;
+  }
 }

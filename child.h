@@ -18,14 +18,14 @@ typedef struct Node {
   int x;
   int y;
   NodeType type;
-  Node *northNeighbor;
-  Node *northEastNeighbor;
-  Node *eastNeighbor;
-  Node *southEastNeighbor;
-  Node *southNeighbor;
-  Node *southWestNeighbor;
-  Node *westNeighbor;
-  Node *northWestNeighbor;
+  struct Node *northNeighbor;
+  struct Node *northEastNeighbor;
+  struct Node *eastNeighbor;
+  struct Node *southEastNeighbor;
+  struct Node *southNeighbor;
+  struct Node *southWestNeighbor;
+  struct Node *westNeighbor;
+  struct Node *northWestNeighbor;
 } Node;
 
 typedef Node DiscoveryPath;
@@ -34,10 +34,12 @@ static char forest[FOREST_WIDTH][FOREST_HEIGHT];
 
 int isGameOver(GameStep step, Child child, const Wolf *wolf);
 
-void moveChildStep(Child *child, DiscoveryPath *path);
+void moveChildStep(DiscoveryPath *path);
 
 void beginningPos(Child *child);
 
-struct Node *createPathNode(int x, int y);
+struct Node *createPathNode();
+
+void detectPathType(Node *path);
 
 #endif // WOLF__CHILD_H_

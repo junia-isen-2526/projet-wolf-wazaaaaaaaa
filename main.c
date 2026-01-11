@@ -1,5 +1,5 @@
 #include "child.h"
-#include "mermaid.c"
+// #include "mermaid.c"
 #include "wolf.h"
 #include <stdlib.h>
 #include <time.h>
@@ -19,7 +19,8 @@ int main() {
   // Create first path
   Child *child = malloc(sizeof(Child));
   beginningPos(child);
-  Node *currentPath = createPathNode(child->x, child->y);
+  Node *currentPath = createPathNode();
+  detectPathType(currentPath);
 
   GameStep step = STEP_COMPTINE;
 
@@ -40,7 +41,7 @@ int main() {
       moveWolfStep(&wolf);
       break;
     }
-    moveChildStep(child, currentPath);
+    moveChildStep(currentPath);
   }
 
   // Create the Mermaid file
