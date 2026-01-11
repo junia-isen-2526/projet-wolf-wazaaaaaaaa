@@ -34,7 +34,7 @@ static char forest[FOREST_WIDTH][FOREST_HEIGHT];
 
 int isGameOver(GameStep step, Child child, const Wolf *wolf);
 
-void moveChildStep(DiscoveryPath *path);
+DiscoveryPath moveChildStep(DiscoveryPath *path);
 
 void beginningPos(Child *child);
 
