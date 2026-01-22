@@ -21,7 +21,7 @@ int hasVisitedPosition(const Child *child, int x, int y) {
 }
 
 int isGameOver(const GameStep step, Child child, const Wolf *wolf) {
-    // Le jeu est terminé si l'enfant est mort ou s'il a réussi à s'échapper
+    // fin jeu, gosse éclaté par le loup ou vivant
     if (!child.isAlive) {
         return 1;
     }
@@ -35,10 +35,9 @@ void moveChildStep(Child *child) {
     char forest[FOREST_HEIGHT][FOREST_WIDTH];
     readLines("../ressources/foret1.txt", forest);
     
-    // Ajouter la position actuelle aux positions visitées
+    // ajouter position à l'instant aux positions parcourues par le gosse
     addVisitedPosition(child, child->x, child->y);
     
-    // Directions possibles : haut, bas, gauche, droite, et diagonales
     int directions[8][2] = {
         {0, -1},  // Haut
         {0, 1},   // Bas
@@ -54,16 +53,16 @@ void moveChildStep(Child *child) {
     int validMoves[8][2];
     int validCount = 0;
     
-    // Chercher toutes les directions valides
+    // chercher directions valide
     for (int i = 0; i < 8; i++) {
         int newX = child->x + directions[i][0];
         int newY = child->y + directions[i][1];
         
-        // Vérifier si la nouvelle position est dans les limites
+        // check si la nouvelle position est dans les limites de la map
         if (newX >= 0 && newX < FOREST_WIDTH && 
             newY >= 0 && newY < FOREST_HEIGHT) {
             
-            // Vérifier si c'est un espace libre (pas un arbre)
+            // voir si c'est un espace sans arbre
             if (forest[newY][newX] == ' ') {
                 validMoves[validCount][0] = newX;
                 validMoves[validCount][1] = newY;
@@ -72,7 +71,7 @@ void moveChildStep(Child *child) {
         }
     }
     
-    // Si des mouvements valides existent, en choisir un aléatoirement
+    // si moves valides existent, en choisir un random
     if (validCount > 0) {
         int chosenMove = rand() % validCount;
         child->x = validMoves[chosenMove][0];
@@ -93,11 +92,9 @@ void moveTowardsStart(Child *child) {
     int dx = child->startX - child->x;
     int dy = child->startY - child->y;
     
-    // Normaliser la direction
     int moveX = (dx > 0) ? 1 : (dx < 0) ? -1 : 0;
     int moveY = (dy > 0) ? 1 : (dy < 0) ? -1 : 0;
     
-    // Essayer de se déplacer directement vers le départ
     int newX = child->x + moveX;
     int newY = child->y + moveY;
     
@@ -109,7 +106,7 @@ void moveTowardsStart(Child *child) {
         return;
     }
     
-    // Si impossible, essayer les directions adjacentes
+    // si impossible, essayer directions à côtés
     int directions[8][2] = {
         {moveX, 0}, {0, moveY}, {moveX, moveY},
         {-moveY, moveX}, {moveY, -moveX},
@@ -193,14 +190,13 @@ void generateMermaidGraph(const Child *child, const char *filename) {
     
     fprintf(file, "graph TD\n");
     
-    // Créer les nœuds et les liens
+    // créer les noeuds
     for (int i = 0; i < child->visitedCount - 1; i++) {
         int x1 = child->visited[i].x;
         int y1 = child->visited[i].y;
         int x2 = child->visited[i + 1].x;
         int y2 = child->visited[i + 1].y;
         
-        // Vérifier si c'est un mouvement adjacent (distance de 1 ou diagonale)
         int dx = abs(x2 - x1);
         int dy = abs(y2 - y1);
         
