@@ -31,15 +31,10 @@ typedef struct Node {
 typedef Node DiscoveryPath;
 
 static char forest[FOREST_WIDTH][FOREST_HEIGHT];
-
 int isGameOver(GameStep step, Child child, const Wolf *wolf);
-
 DiscoveryPath moveChildStep(DiscoveryPath *path);
-
 void beginningPos(Child *child);
-
 struct Node *createPathNode();
-
 void detectPathType(Node *path);
 
 #endif // WOLF__CHILD_H_
