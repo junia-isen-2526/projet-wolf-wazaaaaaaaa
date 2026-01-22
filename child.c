@@ -1,259 +1,215 @@
 #include "child.h"
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 
-char *getForest();
-
-Node *findAvailablePath(Node *startNode);
-
-int isGameOver(const GameStep step, Child child, const Wolf *wolf) {
-  // TODO
-  return step == STEP_WOLF_MOVE;
+void addVisitedPosition(Child *child, int x, int y) {
+    if (!hasVisitedPosition(child, x, y) && child->visitedCount < MAX_VISITED) {
+        child->visited[child->visitedCount].x = x;
+        child->visited[child->visitedCount].y = y;
+        child->visitedCount++;
+    }
 }
 
-DiscoveryPath moveChildStep(DiscoveryPath *currentPath) {
-  detectPathType(currentPath);
-
-  // If the cell is not of 'path' type that mean that we need to go back
-  // Else we go to an adjacent cell not yet discovered
-  if (currentPath->type != PATH) {
-    printf("Cleared %d : %d %d ; ", currentPath->id, currentPath->x,
-           currentPath->y);
-
-    Node *backtrackNode = findAvailablePath(currentPath);
-
-    if (backtrackNode != NULL) {
-      printf("find %d\n", backtrackNode->id);
-      return *backtrackNode;
-    } else {
-      printf("finished\n");
-      return *currentPath;
+int hasVisitedPosition(const Child *child, int x, int y) {
+    for (int i = 0; i < child->visitedCount; i++) {
+        if (child->visited[i].x == x && child->visited[i].y == y) {
+            return 1;
+        }
     }
-  } else {
-    Node *newPath = createPathNode();
-    if (currentPath->eastNeighbor == NULL) {
-      newPath->x = currentPath->x + 1;
-      newPath->y = currentPath->y;
-      currentPath->eastNeighbor = newPath;
-      newPath->westNeighbor = currentPath;
-      printf("new W %d\n", newPath->westNeighbor->id);
-    } else if (currentPath->southEastNeighbor == NULL) {
-      newPath->x = currentPath->x + 1;
-      newPath->y = currentPath->y - 1;
-      currentPath->southEastNeighbor = newPath;
-      newPath->northWestNeighbor = currentPath;
-      printf("new NW %d\n", newPath->northWestNeighbor->id);
-    } else if (currentPath->southNeighbor == NULL) {
-      newPath->x = currentPath->x;
-      newPath->y = currentPath->y - 1;
-      currentPath->southNeighbor = newPath;
-      newPath->northNeighbor = currentPath;
-      printf("new N %d\n", newPath->northNeighbor->id);
-    } else if (currentPath->southWestNeighbor == NULL) {
-      newPath->x = currentPath->x - 1;
-      newPath->y = currentPath->y - 1;
-      currentPath->southWestNeighbor = newPath;
-      newPath->northEastNeighbor = currentPath;
-      printf("new NE %d\n", newPath->northEastNeighbor->id);
-    } else if (currentPath->westNeighbor == NULL) {
-      newPath->x = currentPath->x - 1;
-      newPath->y = currentPath->y;
-      currentPath->westNeighbor = newPath;
-      newPath->eastNeighbor = currentPath;
-      printf("new E %d\n", newPath->eastNeighbor->id);
-    } else if (currentPath->northWestNeighbor == NULL) {
-      newPath->x = currentPath->x - 1;
-      newPath->y = currentPath->y + 1;
-      currentPath->northWestNeighbor = newPath;
-      newPath->southEastNeighbor = currentPath;
-      printf("new SE %d\n", newPath->southEastNeighbor->id);
-    } else if (currentPath->northNeighbor == NULL) {
-      newPath->x = currentPath->x;
-      newPath->y = currentPath->y + 1;
-      currentPath->northNeighbor = newPath;
-      newPath->southNeighbor = currentPath;
-      printf("new S%d\n", newPath->southNeighbor->id);
-    } else if (currentPath->northEastNeighbor == NULL) {
-      newPath->x = currentPath->x + 1;
-      newPath->y = currentPath->y + 1;
-      currentPath->northEastNeighbor = newPath;
-      newPath->southWestNeighbor = currentPath;
-      printf("new SW %d\n", newPath->southWestNeighbor->id);
-    } else {
-      printf(":c\n");
+    return 0;
+}
+
+int isGameOver(const GameStep step, Child child, const Wolf *wolf) {
+    // Le jeu est terminé si l'enfant est mort ou s'il a réussi à s'échapper
+    if (!child.isAlive) {
+        return 1;
     }
-    return *newPath;
-  }
+    if (child.hasEscaped && wolf->isOut) {
+        return 1;
+    }
+    return 0;
+}
+
+void moveChildStep(Child *child) {
+    char forest[FOREST_HEIGHT][FOREST_WIDTH];
+    readLines("../ressources/foret1.txt", forest);
+    
+    // Ajouter la position actuelle aux positions visitées
+    addVisitedPosition(child, child->x, child->y);
+    
+    // Directions possibles : haut, bas, gauche, droite, et diagonales
+    int directions[8][2] = {
+        {0, -1},  // Haut
+        {0, 1},   // Bas
+        {-1, 0},  // Gauche
+        {1, 0},   // Droite
+        {-1, -1}, // Haut-gauche
+        {1, -1},  // Haut-droite
+        {-1, 1},  // Bas-gauche
+        {1, 1}    // Bas-droite
+    };
+    
+    // Liste des directions valides
+    int validMoves[8][2];
+    int validCount = 0;
+    
+    // Chercher toutes les directions valides
+    for (int i = 0; i < 8; i++) {
+        int newX = child->x + directions[i][0];
+        int newY = child->y + directions[i][1];
+        
+        // Vérifier si la nouvelle position est dans les limites
+        if (newX >= 0 && newX < FOREST_WIDTH && 
+            newY >= 0 && newY < FOREST_HEIGHT) {
+            
+            // Vérifier si c'est un espace libre (pas un arbre)
+            if (forest[newY][newX] == ' ') {
+                validMoves[validCount][0] = newX;
+                validMoves[validCount][1] = newY;
+                validCount++;
+            }
+        }
+    }
+    
+    // Si des mouvements valides existent, en choisir un aléatoirement
+    if (validCount > 0) {
+        int chosenMove = rand() % validCount;
+        child->x = validMoves[chosenMove][0];
+        child->y = validMoves[chosenMove][1];
+    }
+}
+
+int isAtStartPosition(const Child *child) {
+    return (child->x == child->startX && child->y == child->startY);
+}
+
+void moveTowardsStart(Child *child) {
+    char forest[FOREST_HEIGHT][FOREST_WIDTH];
+    readLines("../ressources/foret1.txt", forest);
+    
+    addVisitedPosition(child, child->x, child->y);
+    
+    int dx = child->startX - child->x;
+    int dy = child->startY - child->y;
+    
+    // Normaliser la direction
+    int moveX = (dx > 0) ? 1 : (dx < 0) ? -1 : 0;
+    int moveY = (dy > 0) ? 1 : (dy < 0) ? -1 : 0;
+    
+    // Essayer de se déplacer directement vers le départ
+    int newX = child->x + moveX;
+    int newY = child->y + moveY;
+    
+    if (newX >= 0 && newX < FOREST_WIDTH && 
+        newY >= 0 && newY < FOREST_HEIGHT &&
+        forest[newY][newX] == ' ') {
+        child->x = newX;
+        child->y = newY;
+        return;
+    }
+    
+    // Si impossible, essayer les directions adjacentes
+    int directions[8][2] = {
+        {moveX, 0}, {0, moveY}, {moveX, moveY},
+        {-moveY, moveX}, {moveY, -moveX},
+        {1, 0}, {-1, 0}, {0, 1}, {0, -1}
+    };
+    
+    for (int i = 0; i < 8; i++) {
+        newX = child->x + directions[i][0];
+        newY = child->y + directions[i][1];
+        
+        if (newX >= 0 && newX < FOREST_WIDTH && 
+            newY >= 0 && newY < FOREST_HEIGHT &&
+            forest[newY][newX] == ' ') {
+            child->x = newX;
+            child->y = newY;
+            return;
+        }
+    }
 }
 
 void beginningPos(Child *child) {
-  // Child spawns on a border of the forest
-  // Randomly look for a pos
-  readLines("../ressources/foret1.txt", forest);
+    char forest[FOREST_HEIGHT][FOREST_WIDTH];
+    readLines("../ressources/foret1.txt", forest);
 
-  // srand(time(NULL));
+    int randBegin = rand() % 2;
+    int analysisDirection = rand() % 2;
 
-  int randBegin = rand() % 2;
-  int analysisDirection = rand() % 2;
+    switch (randBegin) {
+        case 0:
+            child->x = 0;
+            child->y = 0;
+            if (analysisDirection == 0) {
+                for (child->x = 0; child->x < FOREST_WIDTH; child->x++) {
+                    if (forest[child->y][child->x] == ' ') {
+                        break;
+                    }
+                }
+            } else {
+                for (child->y = 0; child->y < FOREST_HEIGHT; child->y++) {
+                    if (forest[child->y][child->x] == ' ') {
+                        break;
+                    }
+                }
+            }
+            break;
 
-  switch (randBegin) {
-  // pt départ tableau: x:0 ; y:0
-  case 0:
-    child->x = 0;
-    child->y = 0;
-    if (analysisDirection == 0) {
-      // analysis in x
-      for (child->x = 0; child->x < FOREST_WIDTH; child->x++) {
-        // Est-ce que arbre ou pas
-        // Si oui stopper analyse et définir point de départ
-        if (forest[child->x][child->y] == ' ') {
-          break;
-        }
-      }
+        case 1:
+            child->x = FOREST_WIDTH - 1;
+            child->y = FOREST_HEIGHT - 1;
+
+            if (analysisDirection == 0) {
+                for (child->x = FOREST_WIDTH - 1; child->x >= 0; child->x--) {
+                    if (forest[child->y][child->x] == ' ') {
+                        break;
+                    }
+                }
+            } else {
+                for (child->y = FOREST_HEIGHT - 1; child->y >= 0; child->y--) {
+                    if (forest[child->y][child->x] == ' ') {
+                        break;
+                    }
+                }
+            }
+            break;
     }
-    if (analysisDirection == 1) {
-      // analysis in y
-      for (child->y = 0; child->y < FOREST_HEIGHT; child->y++) {
-        // Est-ce que arbre ou pas
-        // Si oui stopper analyse et définir point de départ
-        if (forest[child->x][child->y] == ' ') {
-          break;
-        }
-      }
-    }
-
-    break;
-
-    // pt départ x:40 ; y:80
-  case 1:
-    child->x = FOREST_WIDTH;
-    child->y = FOREST_HEIGHT;
-
-    if (analysisDirection == 0) {
-      // analysis in x
-      for (child->x = FOREST_WIDTH - 1; child->x > 0; child->x--) {
-        // Est-ce que arbre ou pas
-        // Si oui stopper analyse et définir point de départ
-        if (forest[child->x][child->y] == ' ') {
-          break;
-        }
-      }
-    }
-    if (analysisDirection == 1) {
-      // analysis in y
-      for (child->y = FOREST_HEIGHT - 1; child->y > 0; child->y--) {
-        // Est-ce que arbre ou pas
-        // Si oui stopper analyse et définir point de départ
-        if (forest[child->x][child->y] == ' ') {
-          break;
-        }
-      }
-    }
-    break;
-  default:
-    child->x = 0;
-    child->y = 0;
-
-    if (analysisDirection == 0) {
-      // analysis in x
-      for (child->x = 0; child->x < FOREST_WIDTH; child->x++) {
-        // Est-ce que arbre ou pas
-        // Si oui stopper analyse et définir point de départ
-        if (forest[child->x][child->y] == ' ') {
-          break;
-        }
-      }
-    }
-    if (analysisDirection == 1) {
-      // analysis in y
-      for (child->y = 0; child->y < FOREST_HEIGHT; child->y++) {
-        // Est-ce que arbre ou pas
-        // Si oui stopper analyse et définir point de départ
-        if (forest[child->x][child->y] == ' ') {
-          break;
-        }
-      }
-    }
-
-    break;
-  }
+    
+    child->startX = child->x;
+    child->startY = child->y;
+    child->visitedCount = 0;
+    child->isAlive = 1;
+    child->hasEscaped = 0;
+    addVisitedPosition(child, child->x, child->y);
 }
 
-struct Node *createPathNode() {
-  static unsigned int id = 1;
-  printf("\ncreating node %d ...\n", id);
-
-  Node *newPath = malloc(sizeof(Node));
-  newPath->id = id++;
-  newPath->x = 0;
-  newPath->y = 0;
-  newPath->eastNeighbor = NULL;
-  newPath->southEastNeighbor = NULL;
-  newPath->southNeighbor = NULL;
-  newPath->southWestNeighbor = NULL;
-  newPath->westNeighbor = NULL;
-  newPath->northWestNeighbor = NULL;
-  newPath->northNeighbor = NULL;
-  newPath->northEastNeighbor = NULL;
-
-  return newPath;
-}
-
-void detectPathType(Node *path) {
-  // Detect if all 8 adjacent cell are already discovered
-  if (path->northNeighbor != NULL && path->northEastNeighbor != NULL &&
-      path->eastNeighbor != NULL && path->southEastNeighbor != NULL &&
-      path->southNeighbor != NULL && path->southWestNeighbor != NULL &&
-      path->westNeighbor != NULL && path->northWestNeighbor != NULL) {
-    path->type = FULL;
-  } else if (path->x < 0 || path->y < 0 || path->x > FOREST_WIDTH ||
-             path->y > FOREST_HEIGHT) {
-    path->type = EXIT;
-  } else if (forest[path->x][path->y] == '1') {
-    path->type = TREE;
-  } else {
-    path->type = PATH;
-  }
-
-  printf("path type of %d : %d\n", path->id, path->type);
-}
-
-Node *findAvailablePath(Node *startNode) {
-  if (startNode == NULL) {
-    return NULL;
-  }
-
-  // Use BFS with a fresh visited array each time
-  Node *queue[1000];
-  int visited[1000] = {0}; // NOT static - resets each call
-  int front = 0, rear = 0;
-
-  // Add start node to queue
-  queue[rear++] = startNode;
-  visited[startNode->id] = 1;
-
-  printf("Starting search from node %d\n", startNode->id);
-
-  while (front < rear) {
-    Node *current = queue[front++];
-
-    printf("Checking node %d at (%d,%d)\n", current->id, current->x,
-           current->y);
-
-    // Add all neighbors to queue
-    Node *neighbors[] = {current->northNeighbor, current->northEastNeighbor,
-                         current->eastNeighbor,  current->southEastNeighbor,
-                         current->southNeighbor, current->southWestNeighbor,
-                         current->westNeighbor,  current->northWestNeighbor};
-
-    for (int i = 0; i < 8; i++) {
-      if (neighbors[i] != NULL && neighbors[i]->id < 1000 &&
-          !visited[neighbors[i]->id]) {
-        queue[rear++] = neighbors[i];
-        visited[neighbors[i]->id] = 1;
-        printf("  Added neighbor %d to queue\n", neighbors[i]->id);
-      }
+void generateMermaidGraph(const Child *child, const char *filename) {
+    FILE *file = fopen(filename, "w");
+    if (!file) {
+        printf("Erreur : impossible d'ouvrir le fichier %s\n", filename);
+        return;
     }
-  }
-
-  printf("No available path found\n");
-  return NULL;
+    
+    fprintf(file, "graph TD\n");
+    
+    // Créer les nœuds et les liens
+    for (int i = 0; i < child->visitedCount - 1; i++) {
+        int x1 = child->visited[i].x;
+        int y1 = child->visited[i].y;
+        int x2 = child->visited[i + 1].x;
+        int y2 = child->visited[i + 1].y;
+        
+        // Vérifier si c'est un mouvement adjacent (distance de 1 ou diagonale)
+        int dx = abs(x2 - x1);
+        int dy = abs(y2 - y1);
+        
+        if (dx <= 1 && dy <= 1 && (dx + dy) > 0) {
+            fprintf(file, "    %d(%d,%d) --> %d(%d,%d)\n", 
+                    i + 1, x1, y1, i + 2, x2, y2);
+        }
+    }
+    
+    fclose(file);
+    printf("Graph Mermaid généré dans %s\n", filename);
 }
