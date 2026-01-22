@@ -1,55 +1,58 @@
 #include "wolf.h"
 
-int readLines(const char *filename, char lines[FOREST_WIDTH][FOREST_HEIGHT]) {
-	FILE *file = fopen(filename, "r");
-	if (!file) {
-		perror("Erreur ouverture fichier");
-		return 0;
-	}
-	int count = 0;
-	while (fgets(lines[count], FOREST_HEIGHT, file) && count < FOREST_WIDTH) {
-		lines[count][strcspn(lines[count], "\n")] = '\0';
-		count++;
-	}
-	fclose(file);
-	return count;
+int readLines(const char *filename, char lines[][FOREST_WIDTH]) {
+  FILE *file = fopen(filename, "r");
+  if (!file) {
+    perror("Erreur ouverture fichier");
+    return 0;
+  }
+  int count = 0;
+  while (fgets(lines[count], FOREST_WIDTH, file) &&
+         count < MAXClothes) { // Change limit
+    lines[count][strcspn(lines[count], "\n")] = '\0';
+    count++;
+  }
+  fclose(file);
+  return count;
 }
 
-int playComptineStep(char rhyme[FOREST_WIDTH][FOREST_HEIGHT], int rhymeCount) {
-	static int currentLine = 0;
-	if (currentLine < rhymeCount) {
-		printf("%s\n", rhyme[currentLine]);
-		currentLine++;
-		return 0;
-	} else {
-		currentLine = 0;
-		return 1;
-	}
+int playComptineStep(char rhyme[][FOREST_WIDTH], int rhymeCount) {
+  static int currentLine = 0;
+  if (currentLine < rhymeCount) {
+    printf("%s\n", rhyme[currentLine]);
+    currentLine++;
+    return 0;
+  } else {
+    currentLine = 0;
+    return 1;
+  }
 }
 
-int wolfDressingStep(Wolf *wolf, const char clothes[MAXClothes][FOREST_HEIGHT], const int clothesCount) {
-	static int currentCloth = 0;
-	if ((currentCloth >= clothesCount) || ((currentCloth > 1) && (rand() % clothesCount == 0))) {
-		printf("J'arrive !!!\n");
-		return 1;
-	} else {
-		printf("Je mets mon %s !\n", clothes[currentCloth]);
-		if (currentCloth == 0 && wolf->active == 0) {
-			wolf->x = rand() % FOREST_WIDTH;
-			wolf->y = rand() % FOREST_HEIGHT;
-			wolf->active = 1;
-		}
-		currentCloth++;
-		return 0;
-	}
+int wolfDressingStep(Wolf *wolf, const char clothes[MAXClothes][FOREST_WIDTH],
+                     const int clothesCount) {
+  static int currentCloth = 0;
+  if ((currentCloth >= clothesCount) ||
+      ((currentCloth > 1) && (rand() % clothesCount == 0))) {
+    printf("J'arrive !!!\n");
+    return 1;
+  } else {
+    printf("Je mets mon %s !\n", clothes[currentCloth]);
+    if (currentCloth == 0 && wolf->active == 0) {
+      wolf->x = rand() % FOREST_WIDTH;
+      wolf->y = rand() % FOREST_HEIGHT;
+      wolf->active = 1;
+    }
+    currentCloth++;
+    return 0;
+  }
 }
 
 void moveWolfStep(Wolf *wolf) {
-	if (wolf->active) {
-		int dx = (rand() % 3) - 1;
-		int dy = (rand() % 3) - 1;
-		wolf->x += dx;
-		wolf->y += dy;
-		printf("Le loup se déplace en (%d, %d)\n", wolf->x, wolf->y);
-	}
+  if (wolf->active) {
+    int dx = (rand() % 3) - 1;
+    int dy = (rand() % 3) - 1;
+    wolf->x += dx;
+    wolf->y += dy;
+    printf("Le loup se déplace en (%d, %d)\n", wolf->x, wolf->y);
+  }
 }
