@@ -14,7 +14,6 @@ int readLines(const char *filename, char forest[FOREST_HEIGHT][FOREST_WIDTH]) {
     char buffer[256];
     
     while (fgets(buffer, sizeof(buffer), file) && lineCount < FOREST_HEIGHT) {
-        // Copier la ligne dans le tableau forest
         int len = strlen(buffer);
         if (len > 0 && buffer[len - 1] == '\n') {
             buffer[len - 1] = '\0';
@@ -24,7 +23,6 @@ int readLines(const char *filename, char forest[FOREST_HEIGHT][FOREST_WIDTH]) {
         for (int i = 0; i < FOREST_WIDTH && i < len; i++) {
             forest[lineCount][i] = buffer[i];
         }
-        // Remplir le reste avec des espaces
         for (int i = len; i < FOREST_WIDTH; i++) {
             forest[lineCount][i] = ' ';
         }
@@ -45,7 +43,6 @@ int readLinesText(const char *filename, char lines[][256], int maxLines) {
     
     int lineCount = 0;
     while (fgets(lines[lineCount], 256, file) && lineCount < maxLines) {
-        // Enlever le retour Ã la ligne
         int len = strlen(lines[lineCount]);
         if (len > 0 && lines[lineCount][len - 1] == '\n') {
             lines[lineCount][len - 1] = '\0';
