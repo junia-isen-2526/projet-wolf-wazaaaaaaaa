@@ -16,11 +16,11 @@ void displayForest(const Child *child, const Wolf *wolf) {
     for (int y = 0; y < FOREST_HEIGHT; y++) {
         for (int x = 0; x < FOREST_WIDTH; x++) {
             if (child->x == x && child->y == y) {
-                printf("E"); // Enfant
+                printf("E"); // le mineur (l'enfant)
             } else if (wolf->isOut && wolf->x == x && wolf->y == y) {
-                printf("L"); // Loup
+                printf("L"); // loup
             } else if (child->startX == x && child->startY == y) {
-                printf("D"); // Départ
+                printf("D"); // poing de départ
             } else {
                 printf("%c", forest[y][x]);
             }
@@ -33,14 +33,12 @@ void displayForest(const Child *child, const Wolf *wolf) {
 int main() {
     srand(time(NULL));
     
-    // Initialisation
     Child child;
     Wolf wolf;
     
     char comptine[MAX_COMPTINE_LINES][256];
     char vetements[MAX_CLOTHES_LINES][256];
     
-    // Charger les fichiers
     int comptineLines = readLinesText("../ressources/comptine.txt", comptine, MAX_COMPTINE_LINES);
     int vetementLines = readLinesText("../ressources/vetements.txt", vetements, MAX_CLOTHES_LINES);
     
@@ -49,7 +47,7 @@ int main() {
         return 1;
     }
     
-    // Position de départ de l'enfant
+    // starting point du gosse
     beginningPos(&child);
     initWolf(&wolf);
     
@@ -60,19 +58,19 @@ int main() {
     int totalMoves = 0;
     GameStep currentStep = STEP_CHILD_MOVE;
     
-    // Phase 1 : Exploration avant que le loup sorte
+    // Exploration avant que le loup sorte de sa caverne
     while (!wolf.isOut) {
-        // L'enfant chante une phrase de la comptine
+        // comptine
         printf("%s\n", comptine[comptineIndex % comptineLines]);
         comptineIndex++;
         
-        // L'enfant se déplace
+        // gosse qui bouge
         moveChildStep(&child);
         totalMoves++;
         printf("L'enfant se déplace vers (%d, %d) - Positions visitées : %d\n", 
                child.x, child.y, child.visitedCount);
         
-        // Le loup enfile un vêtement
+        // le loup s'habille
         wolf.clothesCount++;
         if (wolf.clothesCount < wolf.clothesToWear) {
             int clotheIndex = rand() % vetementLines;
@@ -81,22 +79,19 @@ int main() {
         } else {
             revealWolf(&wolf);
         }
-        
-        // Pause pour la lisibilité (optionnel)
-        // getchar();
     }
     
-    // Phase 2 : Fuite vers le point de départ
-    printf("\n💨 L'ENFANT DOIT RETOURNER AU POINT DE DÉPART ! 💨\n\n");
+    // retour au point de départ, le loup est sortit
+    printf("\nL'ENFANT DOIT RETOURNER AU POINT DE DÉPART ! \n\n");
     
     while (!isGameOver(currentStep, child, &wolf)) {
         if (currentStep == STEP_CHILD_MOVE) {
-            // L'enfant fuit vers son point de départ
+
             moveTowardsStart(&child);
             printf("L'enfant fuit vers le départ (%d, %d) - Position actuelle : (%d, %d)\n", 
                    child.startX, child.startY, child.x, child.y);
             
-            // Vérifier s'il est arrivé
+            // check si arrivé
             if (isAtStartPosition(&child)) {
                 child.hasEscaped = 1;
                 printf("\nL'ENFANT A RÉUSSI À S'ÉCHAPPER !\n");
@@ -105,10 +100,10 @@ int main() {
             
             currentStep = STEP_WOLF_MOVE;
         } else {
-            // Le loup poursuit l'enfant
+            // le loup course le gosse
             moveWolfTowardsChild(&wolf, child.x, child.y);
             
-            // Vérifier si le loup attrape l'enfant
+            // est-ce que le loup a chopé le gosse
             if (isWolfNearChild(&wolf, child.x, child.y)) {
                 child.isAlive = 0;
                 printf("\nLE LOUP A ATTRAPÉ L'ENFANT !\n");
@@ -117,19 +112,14 @@ int main() {
             
             currentStep = STEP_CHILD_MOVE;
         }
-        
-        // Afficher la carte (optionnel, peut ralentir)
-        // displayForest(&child, &wolf);
-        // getchar();
     }
     
-    // Résultats finaux
-    printf("\n=== RÉSULTATS ===\n");
+    printf("\n=== THE END ===\n");
     printf("Déplacements totaux : %d\n", totalMoves + child.visitedCount);
     printf("Cases explorées : %d\n", child.visitedCount);
-    printf("Statut : %s\n", child.isAlive && child.hasEscaped ? "SAUVÉ ✅" : "MANGÉ ❌");
+    printf("Statut : %s\n", child.isAlive && child.hasEscaped ? "sain et sauf" : "mouru");
     
-    // Générer le graphe Mermaid
+    //graph Mermaid
     generateMermaidGraph(&child, "cartographie.mmd");
     
     printf("\nAppuyez sur Entrée pour afficher la carte finale...\n");
